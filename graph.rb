@@ -1,5 +1,11 @@
 Node = Struct.new(:a, :t, :n, :p, :data)
-Edge = Struct.new(:first, :second)
+Edge = Struct.new(:first, :second, :value)
+
+module GraphDebug
+  def debug
+    @nodes.each { |node| puts "a: #{node.a}, t: #{node.t}, n: #{node.n}, p: #{node.p}, data: #{node.data}" }
+  end
+end
 
 module GraphUtils
   def is_bipartite    
@@ -12,8 +18,6 @@ module GraphUtils
       while !stack.empty?
         curr_node = stack.pop
         curr_color = curr_node.data
-
-        p curr_node
 
         edge = @nodes[curr_node.n]
         while edge.a != curr_node.a
@@ -54,9 +58,10 @@ module GraphUtils
 end
 
 class Graph_t
+  include GraphDebug
   include GraphUtils
 
-  private def to_s = @nodes.map { |node| "a: #{node.a}, t: #{node.t}, n: #{node.n}, p: #{node.p}, data: #{node.data}" }.join("\n")
+  private def to_s = @nodes.first(@n_nodes).map { |node| "#{node.a}: #{node.data == 0 ? "b" : "r"}" }.join("\n")
 
   def initialize edges
     @nodes = []
@@ -71,11 +76,11 @@ class Graph_t
         mate_pos = edge_hash[mate_edge]
         edge_pos = mate_pos ^ 1;
 
-        @nodes[edge_pos] = Node.new(edge_pos, edge.second, edge_pos, edge_pos)
+        @nodes[edge_pos] = Node.new(edge_pos, edge.second, edge_pos, edge_pos, edge.value)
       else
         edge_pos = @nodes.size
-        @nodes.push(Node.new(edge_pos, edge.second, edge_pos, edge_pos))
-        @nodes.push(Node.new(edge_pos + 1, nil, edge_pos + 1, edge_pos + 1))
+        @nodes.push(Node.new(edge_pos, edge.second, edge_pos, edge_pos, edge.value))
+        @nodes.push(Node.new(edge_pos + 1, nil, edge_pos + 1, edge_pos + 1, nil))
       end
 
       if (pos = vertex_poses[edge.first]) != nil
@@ -91,7 +96,7 @@ class Graph_t
       vertex_poses[edge.second] = -1 if vertex_poses[edge.second] == nil
 
       vertex_poses[edge.first] = edge_pos
-      edge_hash[edge] = edge_pos
+      edge_hash[Edge.new(edge.first, edge.second)] = edge_pos
     end
 
     @n_nodes = vertex_poses.size
@@ -104,6 +109,6 @@ class Graph_t
       @nodes[head].p = index - @n_nodes
 
       Node.new(index, nil, head + @n_nodes, pos + @n_nodes)
-    end + @nodes.map! { |node| Node.new(node.a + @n_nodes, node.t, node.n + @n_nodes, node.p + @n_nodes) }
+    end + @nodes.map! { |node| Node.new(node.a + @n_nodes, node.t, node.n + @n_nodes, node.p + @n_nodes, node.data) }
   end
 end
