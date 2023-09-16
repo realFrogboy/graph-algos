@@ -1,12 +1,44 @@
-Node = Struct.new(:a, :t, :n, :p)
+Node = Struct.new(:a, :t, :n, :p, :data)
 Edge = Struct.new(:first, :second)
 
-module GraphDump
+module GraphUtils
+  def is_bipartite    
+    @nodes.first(@n_nodes).each do |node|
+      next if node.data != nil
+
+      stack = [node]
+      node.data = 0
+
+      while !stack.empty?
+        curr_node = stack.pop
+        curr_color = curr_node.data
+
+        p curr_node
+
+        edge = @nodes[curr_node.n]
+        while edge.a != curr_node.a
+          next edge = @nodes[edge.n] if edge.t == nil
+
+          child = @nodes[edge.t]
+          return 0 if child.data == curr_color
+
+          if child.data == nil
+            child.data = curr_color ^ 1
+            stack.push child
+          end
+
+          edge = @nodes[edge.n]
+        end
+      end
+    end
+    1
+  end
+
   def dump file
     file.write("digraph tree {\n")
 
     @nodes.first(@n_nodes).each do |node| 
-      file.write("\tnode#{node.a} [shape = \"record\", label = \"#{node.a}\"];\n")
+      file.write("\tnode#{node.a} [shape = \"record\", style = \"filled\", fillcolor = \"#{node.data == 0 ? "pink" : "greenyellow"}\" label = \"#{node.a}\"];\n")
     end
 
     @nodes.first(@n_nodes).each do |node|
@@ -22,9 +54,9 @@ module GraphDump
 end
 
 class Graph_t
-  include GraphDump
+  include GraphUtils
 
-  private def to_s = @nodes.map { |node| "a: #{node.a}, t: #{node.t}, n: #{node.n}, p: #{node.p}" }.join("\n")
+  private def to_s = @nodes.map { |node| "a: #{node.a}, t: #{node.t}, n: #{node.n}, p: #{node.p}, data: #{node.data}" }.join("\n")
 
   def initialize edges
     @nodes = []

@@ -13,6 +13,8 @@ def main
   edges = getEdges
   graph = Graph_t.new edges
 
+  puts graph.is_bipartite
+
   File.open("graph.dot", 'w') { |file| graph.dump file }
   system("dot -Tpng graph.dot -o graph.png")
 end 
